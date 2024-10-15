@@ -5,6 +5,14 @@ from src.executor import Executor
 from src.evaluator import Evaluator
 from langchain_community.llms import Ollama
 
+# # 初始化openAI的API
+# from langchain_openai import ChatOpenAI
+# import getpass
+# import os
+
+# os.environ["OPENAI_API_KEY"] = getpass.getpass()
+
+
 # from fastapi import FastAPI  
 # from langserve import add_routes
 
@@ -16,6 +24,9 @@ def main():
     """
     # 初始化本地 LLM
     llm = Ollama(model='llama3.1', base_url='http://localhost:11434')
+
+    # 初始化 OpenAI LLM
+    # llm = ChatOpenAI(model_name='gpt-4', temperature=0)
 
     # 初始化规划器
     planner = Planner(llm)
