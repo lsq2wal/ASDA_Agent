@@ -1,7 +1,7 @@
 # src/planner.py
 
 
-from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.prompts import PromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 import re
 
@@ -23,7 +23,7 @@ class Planner:
 
 任务：{task}
 
-请注意，每个步骤前都有数字和句点，每个步骤占一行
+必须遵守的要求：1、请注意，每个步骤前都有数字和句点，每个步骤占一行 2、每个步骤必须包含一个具体的任务，不能只包含一个概念或概括。
 
 """
             
@@ -32,12 +32,10 @@ class Planner:
         生成计划，将任务分解为步骤。
         """
         # 使用用户的任务格式化提示
-        prompt_template = ChatPromptTemplate.from_messages(
-            [("system", self.prompt_template), ("user", "{task}")]
-            )
+        prompt_planner = PromptTemplate(input_variables=["task"], template=self.prompt_template)
         
         # 使用 LLM 获取响应
-        chain = prompt_template | self.llm | self.parser
+        chain = prompt_planner | self.llm | self.parser
 
         # 从响应中解析步骤
         response = chain.invoke({"task":task})

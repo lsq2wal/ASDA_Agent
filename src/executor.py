@@ -1,7 +1,7 @@
 # executor.py
 
 
-from langchain.prompts import PromptTemplate
+from langchain_core.prompts import PromptTemplate
 
 class Executor:
     """
@@ -32,6 +32,7 @@ class Executor:
         为给定的任务生成代码。
         """
         # 使用任务和数据文件路径格式化提示
+        
         prompt = PromptTemplate(input_variables=["task", "data_file_path"], template=self.prompt_template)
         formatted_prompt = prompt.format(task=task, data_file_path=self.data_file_path)
         # 使用 LLM 生成代码
