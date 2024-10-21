@@ -1,6 +1,7 @@
 # Ignore all folders with the specified name
 code/
 result/
+examples/
 
 
 # Byte-compiled / optimized / DLL files

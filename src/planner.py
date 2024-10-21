@@ -1,60 +1,72 @@
 # src/planner.py
 
-
 from langchain_core.prompts import PromptTemplate
-from langchain_core.output_parsers import StrOutputParser
-import re
+from src.utils.json_utils import extract_and_parse_json
 
 class Planner:
     """
     规划器类，负责将用户的主要任务分解为可执行的步骤。
     """
-    def __init__(self, llm):
-        # 初始化大型语言模型
+    def __init__(self, llm, data_representation):
         self.llm = llm
-        self.parser = StrOutputParser()
+        self.data_representation = data_representation
         # 定义用于规划的提示模板
         self.prompt_template = """你是一名专门从事生物信息学的规划助手。
-请将以下 scRNA-seq 数据分析任务分解为可执行的步骤。
-请按照以下格式输出：
-1. [步骤一]
-2. [步骤二]
-...
+请根据以下信息，为用户的 scRNA-seq 数据分析任务生成详细的任务规划。
+输出格式为 JSON，以便于后续子任务的提取。
 
-任务：{task}
+用户任务描述：
+{user_task}
 
-必须遵守的要求：1、请注意，每个步骤前都有数字和句点，每个步骤占一行 2、每个步骤必须包含一个具体的任务，不能只包含一个概念或概括。
+用户数据描述：
+{data_representation}
 
+输出格式要求：
+{{
+  "steps": [
+    {{
+      "id": 1,
+      "description": "步骤一描述"
+    }},
+    {{
+      "id": 2,
+      "description": "步骤二描述"
+    }},
+    ...
+  ]
+}}
+
+请确保输出的 JSON 格式正确，且包含所有必要的步骤。
 """
-            
-    def plan(self, task):
-        """
-        生成计划，将任务分解为步骤。
-        """
-        # 使用用户的任务格式化提示
-        prompt_planner = PromptTemplate(input_variables=["task"], template=self.prompt_template)
-        
+
+    def plan(self, user_task):
+        prompt = PromptTemplate(
+            input_variables=["user_task", "data_representation"],
+            template=self.prompt_template
+        )
+        formatted_prompt = prompt.format(
+            user_task=user_task,
+            data_representation=self.data_representation
+        )
+
         # 使用 LLM 获取响应
-        chain = prompt_planner | self.llm | self.parser
-
-        # 从响应中解析步骤
-        response = chain.invoke({"task":task})
+        response = self.llm.invoke(formatted_prompt)
         print(response)
-        steps = self.parse_steps(response)
 
-        return steps
+        # 尝试提取 JSON 并解析
+        parsed_json = extract_and_parse_json(response)
+        # 解析 JSON 响应
+        if parsed_json:
+            steps = parsed_json.get('steps', [])
+            return steps
+        else:
+            print("规划器生成的 JSON 无法解析，请检查提示模板或 LLM 输出。")
+            return []
 
-    def parse_steps(self, response):
+    def generate_final_result(self):
         """
-        从 LLM 的响应中解析编号的步骤。
+        生成最终结果，可能包括结果汇总、可视化等。
         """
-        steps = []
-        # 使用正则表达式匹配数字和句点开头的行
-        lines = response.strip().split('\n')
-        for line in lines:
-            match = re.match(r'^\s*\d+\.\s*(.*)', line)
-            if match:
-                step = match.group(1).strip()
-                steps.append(step)
-        return steps
-
+        # 由于所有步骤的代码和结果都已在 Jupyter Notebook 中
+        # 因此可以直接将 Notebook 作为最终结果
+        pass
